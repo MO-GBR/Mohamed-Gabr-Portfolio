@@ -6,78 +6,111 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import ThemeButton from './ThemeButton';
 
 gsap.registerPlugin(useGSAP);
 
 const MobileNavbar = () => {
     const [{ scrollY }] = useScroll();
-    const [ toggle, setToggle ] = useState(false);
+    const [ open, setOpen ] = useState(false);
     const dispatch = useDispatch();
     const { mode } = useSelector(state => state.theme);
 
     const menuRef = useRef(null);
-    const tl = useRef(null);
+    const overlayRef = useRef(null);
+    const line1 = useRef(null);
+    const line2 = useRef(null);
+    const line3 = useRef(null);
 
-    useGSAP(
-        () => {
-            if (!menuRef.current) return;
-
-            tl.current = gsap.timeline({ paused: true });
-
-            tl.current
-                .set(menuRef.current, { opacity: 0, y: -20 })
-                .to(menuRef.current, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.5,
-                    ease: "power2.out",
-                });
-        },
-        {
-            dependencies: [toggle], // 👈 key part
-            scope: menuRef,
-        }
-    );
-
-    const toggleMenu = () => {
-        setToggle(prev => {
-            prev ? tl.current.reverse() : tl.current.play();
-            return !prev;
-        });
+    const openMenu = () => {
+        setOpen(true);
+    
+        const tl = gsap.timeline();
+        tl.set(overlayRef.current, { pointerEvents: "auto" }).to(
+            overlayRef.current, 
+            { opacity: 1, duration: 0.3 }
+        ).fromTo(
+            menuRef.current,
+            { x: "100%" },
+            { x: "0%", duration: 0.4, ease: "power3.out" },
+            "-=0.2"
+        ).to(line1.current, { y: 8, duration: 0.2 }, 0)
+            .to(line3.current, { y: -8, duration: 0.2 }, 0)
+            .to(line2.current, { opacity: 0, duration: 0.2 }, 0)
+            .to(line1.current, { rotate: 45, duration: 0.2 }, 0.2)
+            .to(line3.current, { rotate: -45, duration: 0.2 }, 0.2);
     };
-
-
+    const closeMenu = () => {
+        const tl = gsap.timeline({
+            onComplete: () => setOpen(false),
+        });
+    
+        tl.to(menuRef.current, {
+            x: "100%",
+            duration: 0.3,
+            ease: "power3.in",
+        }).to(overlayRef.current, {
+            opacity: 0,
+            duration: 0.2,
+            onStart: () => gsap.set(overlayRef.current, { pointerEvents: "none" }),
+        }).to(line1.current, { rotate: 0, y: 0, duration: 0.2 }, 0)
+            .to(line3.current, { rotate: 0, y: 0, duration: 0.2 }, 0)
+            .to(line2.current, { opacity: 1, duration: 0.2 }, 0);
+    };
     return (
-        <div className='w-full flex-center mb-8'>
-            <div className='fixed top-0 w-full flex-center z-50 flex-col'>
-                <div className={
-                    `flex items-center mt-1 z-50 ${scrollY > 50 ? 'border border-accent rounded-2xl p-2 my-5 w-[90%] bg-[url("/images/bg4.png")] bg-cover bg-center justify-between bg-white duration-300' : 'bg-transparent w-full justify-around'}`
-                }>
-                    <div className={`flex-center cursor-pointer ${scrollY > 50 ? 'text-white bg-black rounded-2xl p-2' : 'text-black'}`}>
-                        <img src={scrollY > 50 || mode === 'dark' ? '/icons/white-code.svg' : '/icons/black-code.svg'} alt='logo' />
-                        <p className={mode === 'light' ? 'logo' : 'logo text-white'}>Mohamed</p>
-                    </div>
+        <>
+            {/* Hamburger Button */}
+            <button
+                onClick={open ? closeMenu : openMenu}
+                className="z-50 flex h-10 w-10 flex-col justify-center gap-1.5 md:hidden m-3 border rounded-[10px] p-2 fixed bg-white cursor-pointer"
+            >
+                <span ref={line1} className="block h-0.5 w-full bg-black" />
+                <span ref={line2} className="block h-0.5 w-full bg-black" />
+                <span ref={line3} className="block h-0.5 w-full bg-black" />
+            </button>
+            {/* Overlay */}
+            {
+                open && (
                     <div
-                        className='border border-accent rounded-full flex-center bg-white p-1 cursor-pointer'
-                        onClick={toggleMenu}
+                        ref={overlayRef}
+                        onClick={closeMenu}
+                        className="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none"
+                    />
+                )
+            }
+            {/* Slide Menu */}
+            {
+                open && (
+                    <div
+                        className={`fixed top-0 right-0 z-50 h-full w-3/4 max-w-xs shadow-xl p-6 ${mode === 'light' ? 'bg-white' : 'bg-black border-l'}`}
+                        ref={menuRef}
                     >
-                        <img src='icons/more.svg' />
+                        <nav className="flex flex-col gap-6 text-lg font-medium">
+                            {
+                                LINKS.map((link, index) => (
+                                    <a 
+                                        href={link.href} 
+                                        key={index} 
+                                        className="hover:text-blue-600"
+                                        onClick={closeMenu}
+                                    >
+                                        {link.title}
+                                    </a>
+                                ))
+                            }
+                        </nav>
+                        <div className='mt-3 border p-3 rounded-2xl flex-center gap-1'>
+                            <ThemeButton />
+                            {
+                                mode === 'light'
+                                    ? <p>Light Mode</p>
+                                    : <p>Dark Mode</p>
+                            }
+                        </div>
                     </div>
-                </div>
-                <div className='flex flex-col glass z-60 w-[80vw] items-center gap-5 p-5 mt-2' ref={menuRef} style={{ display: toggle ? "flex" : "none" }}>
-                    {
-                        LINKS.map(link => (
-                            <li className='list-none' key={link.title}>
-                                <a href={link.url} className='text-md font-bold text-white p-2 rounded-lg cursor-pointer'>{link.title}</a>
-                            </li>
-                        ))
-                    }
-                    <button onClick={() => dispatch(toggleTheme())} className='border border-primary rounded-full p-2'>
-                        {mode === 'light' ? 'Dark' : 'Light'} Mode
-                    </button>
-                </div>
-            </div>
-        </div>
+                )
+            }
+        </>
     )
 }
 

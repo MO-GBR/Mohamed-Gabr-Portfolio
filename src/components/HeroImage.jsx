@@ -22,7 +22,7 @@ const Badge = () => {
     const { mode } = useSelector(state => state.theme);
     return (
         <div className={
-            `flex-center bg-gray-200 shadow-lg rounded-xl absolute border border-gray-400 ${mode === 'light' ? '-left-10 -bottom-4' : 'bottom-15 max-lg:bottom-48'}`
+            `flex-center bg-gray-200 shadow-lg rounded-xl absolute border border-gray-400 -bottom-4 ${mode === 'light' ? '-left-10' : 'max-lg:-bottom-4'}`
         }>
             <img src='/tech/react.png' alt='React' className='img w-[25px] m-2' />
             <img src='/tech/express.png' alt='Express' className='img w-[25px] m-1' />

@@ -1,13 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useScroll } from '../hooks/useScroll'
 import { LINKS } from '../constants';
-import { toggleTheme } from '../redux/reducers/theme'
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import ThemeButton from './ThemeButton';
 
 const Navbar = () => {
     const [{ scrollY }] = useScroll();
-    const [ toggle, setToggle ] = useState(false);
-    const dispatch = useDispatch();
     const { mode } = useSelector(state => state.theme);
 
     const activeLink = (href) => {
@@ -18,11 +16,6 @@ const Navbar = () => {
         if (href === '#work' && scrollY > 3800 && scrollY < 4800) return true;
         if (href === '#contact' && scrollY > 4800 ) return true;
             return false;
-    };
-
-    const swithTheme = () => {
-        setToggle(!toggle);
-        dispatch(toggleTheme());
     };
 
     return (
@@ -50,23 +43,7 @@ const Navbar = () => {
                 </nav>
             </div>
             <button className='border p-3 border-gray-400 rounded-2xl cursor-pointer hover:bg-accent'>Hire Me</button>
-            <div 
-                className={
-                    `border-2 p-0 rounded-full w-[70px] h-[35px] flex items-center 
-                        ${toggle ? 'justify-end' : 'justify-start'}
-                        ${mode === 'light' ? 'bg-yellow-100' : 'bg-blue-100'}
-                    `
-                }
-                onClick={swithTheme}
-            >
-                <div className='w-[40px] h-[40px] border-2 rounded-full flex-center bg-white cursor-pointer'>
-                    {
-                        mode === 'light'
-                            ? <img src='/icons/sun.svg' alt='sun' />
-                            : <img src='/icons/moon.svg' alt='moon' />
-                    }
-                </div>
-            </div>
+            <ThemeButton />
         </header>
     )
 }
