@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Certification from '../components/certification'
+import Certification from '../components/Certification'
 import { CERTIFICATIONS } from '../constants';
 import { useDispatch, useSelector } from 'react-redux';
 import Title from '../components/Title';
